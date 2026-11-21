@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import "util.js" as Util
+import "themes.js" as Themes
 
 ApplicationWindow {
     id: win
@@ -36,21 +37,26 @@ ApplicationWindow {
     }
 
     // Colores compartidos (los demás archivos los leen vía ApplicationWindow.window)
-    readonly property bool orangeTheme: appSettings.theme === "orange"
     readonly property color accent: palette.accent
     readonly property color hoverColor: Qt.rgba(palette.windowText.r, palette.windowText.g, palette.windowText.b, 0.06)
 
-    // ----------------------------------------------------- tema naranja y negro
+    // Tema actual (null = "Sistema": colores de Windows sin cambios)
+    readonly property var theme: Themes.byKey(appSettings.theme)
+    readonly property bool customTheme: theme !== null
+
+    // ------------------------------------------------------------- temas propios
     // Con `when` en falso, cada Binding devuelve el color original del sistema.
-    Binding { target: win.palette; property: "accent";          value: "#ff7a1a"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "highlight";       value: "#ff7a1a"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "highlightedText"; value: "#111111"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "window";          value: "#0b0b0c"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "base";            value: "#121214"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "alternateBase";   value: "#18181b"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "button";          value: "#1e1e21"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "windowText";      value: "#f5f1ec"; when: win.orangeTheme }
-    Binding { target: win.palette; property: "text";            value: "#f5f1ec"; when: win.orangeTheme }
+    Binding { target: win.palette; property: "window";          value: win.theme ? win.theme.window : "";    when: win.customTheme }
+    Binding { target: win.palette; property: "base";            value: win.theme ? win.theme.surface : "";   when: win.customTheme }
+    Binding { target: win.palette; property: "alternateBase";   value: win.theme ? win.theme.surface : "";   when: win.customTheme }
+    Binding { target: win.palette; property: "button";          value: win.theme ? win.theme.secondary : ""; when: win.customTheme }
+    Binding { target: win.palette; property: "mid";             value: win.theme ? win.theme.secondary : ""; when: win.customTheme }
+    Binding { target: win.palette; property: "accent";          value: win.theme ? win.theme.accent : "";    when: win.customTheme }
+    Binding { target: win.palette; property: "highlight";       value: win.theme ? win.theme.accent : "";    when: win.customTheme }
+    Binding { target: win.palette; property: "highlightedText"; value: win.theme ? win.theme.window : "";    when: win.customTheme }
+    Binding { target: win.palette; property: "windowText";      value: win.theme ? win.theme.text : "";      when: win.customTheme }
+    Binding { target: win.palette; property: "text";            value: win.theme ? win.theme.text : "";      when: win.customTheme }
+    Binding { target: win.palette; property: "buttonText";      value: win.theme ? win.theme.text : "";      when: win.customTheme }
 
     // ------------------------------------------------------------------ atajos
     Shortcut { sequence: "Space"; onActivated: player.togglePlay() }

@@ -3,7 +3,7 @@ from PySide6.QtGui import QGuiApplication
 
 # nombre -> (valor por defecto, valores permitidos)
 OPTIONS = {
-    "theme": ("orange", ("orange", "system")),
+    "theme": ("orange", ("orange", "midnight", "forest", "sunset", "arctic", "burgundy", "monochrome", "system")),
     "lyricsSize": ("large", ("small", "medium", "large", "xlarge")),
     "lyricsAlign": ("center", ("left", "center", "right")),
     "lyricsAnchor": ("center", ("top", "center", "bottom")),
@@ -43,8 +43,8 @@ class AppSettings(QObject):
             self.changed.emit()
 
     def _apply_theme(self):
-        # El tema naranja siempre es oscuro; "system" sigue el modo de Windows.
-        dark = self._values["theme"] == "orange"
+        # Todos los temas propios son oscuros; "system" sigue el modo de Windows.
+        dark = self._values["theme"] != "system"
         QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Unknown)
 
     theme = _option("theme", changed)
