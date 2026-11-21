@@ -114,46 +114,57 @@ ApplicationWindow {
             color: win.hoverColor
         }
 
-        ColumnLayout {
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 0
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 28
-                Layout.rightMargin: 24
-                Layout.topMargin: 18
-                Layout.bottomMargin: 10
-
-                Label {
-                    text: win.viewNames[win.view]
-                    font.pixelSize: 24
-                    font.bold: true
-                }
-                Label {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    Layout.alignment: Qt.AlignBottom
-                    bottomPadding: 4
-                    text: player.playlist.count > 0
-                          ? Util.songs(player.playlist.count) + "  ·  " + Util.minutes(player.playlist.totalDuration)
-                          : ""
-                    horizontalAlignment: Text.AlignRight
-                    elide: Text.ElideRight
-                    opacity: 0.55
-                    font.pixelSize: 12
-                }
+            LyricsBackdrop {
+                anchors.fill: parent
+                opacity: win.view === 2 ? 1 : 0
+                visible: opacity > 0
+                Behavior on opacity { NumberAnimation { duration: 400 } }
             }
 
-            StackLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                currentIndex: win.view
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
 
-                SongsView { onAddFolderRequested: folderDialog.open() }
-                AlbumsView { onAddFolderRequested: folderDialog.open() }
-                LyricsView {}
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 28
+                    Layout.rightMargin: 24
+                    Layout.topMargin: 18
+                    Layout.bottomMargin: 10
+
+                    Label {
+                        text: win.viewNames[win.view]
+                        font.pixelSize: 24
+                        font.bold: true
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.alignment: Qt.AlignBottom
+                        bottomPadding: 4
+                        text: player.playlist.count > 0
+                              ? Util.songs(player.playlist.count) + "  ·  " + Util.minutes(player.playlist.totalDuration)
+                              : ""
+                        horizontalAlignment: Text.AlignRight
+                        elide: Text.ElideRight
+                        opacity: 0.55
+                        font.pixelSize: 12
+                    }
+                }
+
+                StackLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    currentIndex: win.view
+
+                    SongsView { onAddFolderRequested: folderDialog.open() }
+                    AlbumsView { onAddFolderRequested: folderDialog.open() }
+                    LyricsView {}
+                }
             }
         }
     }

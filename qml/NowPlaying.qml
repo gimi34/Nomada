@@ -27,21 +27,25 @@ Item {
     // Fondo difuminado con la carátula
     Image {
         id: bgCover
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: parent.width + 160   // más grande que el panel: sin bordes transparentes
+        height: parent.height + 160
         source: player.coverSource
-        sourceSize: Qt.size(200, 200)
+        sourceSize: Qt.size(64, 64)
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         visible: false
     }
     MultiEffect {
-        anchors.fill: parent
+        anchors.fill: bgCover
+        autoPaddingEnabled: false
         source: bgCover
         blurEnabled: true
         blur: 1.0
         blurMax: 64
+        blurMultiplier: 1.0
         saturation: 0.3
-        opacity: bgCover.status === Image.Ready ? 0.35 : 0
+        opacity: bgCover.status === Image.Ready ? 0.4 : 0
         Behavior on opacity { NumberAnimation { duration: 400 } }
     }
 

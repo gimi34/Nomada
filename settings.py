@@ -1,33 +1,53 @@
 from PySide6.QtCore import QObject, QSettings, Qt, Property, Signal
 from PySide6.QtGui import QGuiApplication
 
-THEMES = ("orange", "system")
+# nombre -> (valor por defecto, valores permitidos)
+OPTIONS = {
+    "theme": ("orange", ("orange", "system")),
+    "lyricsSize": ("large", ("small", "medium", "large", "xlarge")),
+    "lyricsAlign": ("center", ("left", "center", "right")),
+    "lyricsAnchor": ("center", ("top", "center", "bottom")),
+}
+
+
+def _option(name: str, notify: Signal):
+    def getter(self):
+        return self._values[name]
+
+    def setter(self, value):
+        self._set(name, value)
+
+    return Property(str, getter, setter, notify=notify)
 
 
 class AppSettings(QObject):
     """Preferencias de la aplicación expuestas a QML como `appSettings`."""
 
-    themeChanged = Signal()
+    changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        theme = QSettings().value("theme", "orange", type=str)
-        self._theme = theme if theme in THEMES else "orange"
+        s = QSettings()
+        self._values = {}
+        for name, (default, allowed) in OPTIONS.items():
+            value = s.value(name, default, type=str)
+            self._values[name] = value if value in allowed else default
         self._apply_theme()
+
+    def _set(self, name: str, value: str):
+        if value in OPTIONS[name][1] and value != self._values[name]:
+            self._values[name] = value
+            QSettings().setValue(name, value)
+            if name == "theme":
+                self._apply_theme()
+            self.changed.emit()
 
     def _apply_theme(self):
         # El tema naranja siempre es oscuro; "system" sigue el modo de Windows.
-        scheme = Qt.ColorScheme.Dark if self._theme == "orange" else Qt.ColorScheme.Unknown
-        QGuiApplication.styleHints().setColorScheme(scheme)
+        dark = self._values["theme"] == "orange"
+        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Unknown)
 
-    def _get_theme(self):
-        return self._theme
-
-    def _set_theme(self, theme):
-        if theme in THEMES and theme != self._theme:
-            self._theme = theme
-            QSettings().setValue("theme", theme)
-            self._apply_theme()
-            self.themeChanged.emit()
-
-    theme = Property(str, _get_theme, _set_theme, notify=themeChanged)
+    theme = _option("theme", changed)
+    lyricsSize = _option("lyricsSize", changed)
+    lyricsAlign = _option("lyricsAlign", changed)
+    lyricsAnchor = _option("lyricsAnchor", changed)

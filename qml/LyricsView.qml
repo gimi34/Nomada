@@ -1,56 +1,108 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 
-// Letra de la canción actual. Si está sincronizada (LRC), resalta la línea actual.
+// Letra de la canción actual sobre la carátula difuminada.
+// Si está sincronizada (LRC), resalta, agranda y sigue la línea que suena.
 Item {
     id: view
-    readonly property var win: ApplicationWindow.window
+    clip: true
 
+    readonly property var win: ApplicationWindow.window
+    readonly property color accent: win ? win.accent : "#ff7a1a"
+    readonly property color fg: win ? win.palette.windowText : "white"
+    readonly property bool synced: player.lyricsSynced
+
+    // Preferencias (Configuración → Letras)
+    readonly property int fontSize: ({ small: 22, medium: 28, large: 36, xlarge: 46 })[appSettings.lyricsSize] ?? 36
+    readonly property int hAlign: ({ left: Text.AlignLeft, center: Text.AlignHCenter, right: Text.AlignRight })[appSettings.lyricsAlign] ?? Text.AlignHCenter
+    readonly property real anchorRatio: ({ top: 0.16, center: 0.38, bottom: 0.6 })[appSettings.lyricsAnchor] ?? 0.38
+
+    // ------------------------------------------------------------------ letra
     ListView {
         id: lyrics
         anchors.fill: parent
-        anchors.leftMargin: 32
-        anchors.rightMargin: 32
+        anchors.leftMargin: 48
+        anchors.rightMargin: 48
         visible: count > 0
         clip: true
-        spacing: player.lyricsSynced ? 14 : 4
         model: player.lyrics
+        spacing: Math.round(view.fontSize * (view.synced ? 0.5 : 0.2))
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar {}
 
-        currentIndex: player.lyricsSynced ? player.lyricIndex : -1
+        currentIndex: view.synced ? player.lyricIndex : -1
         highlight: Item {}
         highlightFollowsCurrentItem: true
-        highlightMoveDuration: 350
-        highlightRangeMode: player.lyricsSynced ? ListView.ApplyRange : ListView.NoHighlightRange
-        preferredHighlightBegin: height * 0.35
-        preferredHighlightEnd: height * 0.45
+        highlightMoveDuration: 450
+        highlightMoveVelocity: -1
+        highlightRangeMode: view.synced ? ListView.ApplyRange : ListView.NoHighlightRange
+        preferredHighlightBegin: height * view.anchorRatio
+        preferredHighlightEnd: height * view.anchorRatio + (currentItem ? currentItem.height : 0)
 
-        header: Item { height: 24 }
-        footer: Item { height: player.lyricsSynced ? lyrics.height * 0.5 : 24 }
+        // Al cambiar tamaño, posición o alto de la ventana, recolocar la línea actual
+        // sin esperar a la siguiente línea.
+        function recenter() {
+            if (view.synced && currentItem)
+                contentY = currentItem.y - preferredHighlightBegin
+        }
+        onHeightChanged: Qt.callLater(recenter)
+        Connections {
+            target: view
+            function onAnchorRatioChanged() { Qt.callLater(lyrics.recenter) }
+            function onFontSizeChanged() { Qt.callLater(lyrics.recenter) }
+        }
 
-        delegate: Label {
+        // Márgenes para que la primera y la última línea puedan llegar a la posición elegida
+        header: Item { width: 1; height: view.synced ? lyrics.height * view.anchorRatio : 40 }
+        footer: Item { width: 1; height: view.synced ? lyrics.height * (1 - view.anchorRatio) : 40 }
+
+        delegate: Item {
             id: line
             required property int index
             required property var modelData
-            readonly property bool active: player.lyricsSynced && index === player.lyricIndex
 
-            width: ListView.view.width
-            text: modelData.text.length > 0 ? modelData.text : (player.lyricsSynced ? "♪" : " ")
-            wrapMode: Text.WordWrap
-            font.pixelSize: player.lyricsSynced ? 22 : 16
-            font.bold: player.lyricsSynced
-            lineHeight: 1.15
-            color: active && view.win ? view.win.accent : (view.win ? view.win.palette.windowText : "white")
-            Behavior on color { ColorAnimation { duration: 250 } }
-            opacity: !player.lyricsSynced ? 0.9
-                   : active ? 1.0
-                   : index < player.lyricIndex ? 0.3 : 0.45
-            Behavior on opacity { NumberAnimation { duration: 250 } }
+            readonly property bool active: view.synced && index === player.lyricIndex
+            readonly property int distance: !view.synced ? 0
+                                          : player.lyricIndex < 0 ? index + 1
+                                          : Math.abs(index - player.lyricIndex)
+            width: lyrics.width
+            height: label.implicitHeight
+
+            Label {
+                id: label
+                width: parent.width
+                topPadding: 4
+                bottomPadding: 4
+                text: line.modelData.text.length > 0 ? line.modelData.text : (view.synced ? "♪" : " ")
+                wrapMode: Text.WordWrap
+                horizontalAlignment: view.hAlign
+                font.pixelSize: view.synced ? view.fontSize : Math.round(view.fontSize * 0.68)
+                font.bold: view.synced
+                lineHeight: 1.08
+                color: line.active ? view.accent : view.fg
+                opacity: !view.synced ? 0.92 : line.active ? 1.0 : Math.max(0.28, 0.62 - line.distance * 0.08)
+                scale: !view.synced || line.active ? 1.0 : 0.88
+                transformOrigin: view.hAlign === Text.AlignLeft ? Item.Left
+                               : view.hAlign === Text.AlignRight ? Item.Right : Item.Center
+
+                Behavior on scale { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 350 } }
+                Behavior on color { ColorAnimation { duration: 350 } }
+
+                // Desenfoque creciente en las líneas que no suenan
+                layer.enabled: view.synced
+                layer.effect: MultiEffect {
+                    blurEnabled: true
+                    blurMax: 20
+                    blur: line.active ? 0 : Math.min(0.9, line.distance * 0.22)
+                    Behavior on blur { NumberAnimation { duration: 350 } }
+                }
+            }
 
             MouseArea {
                 anchors.fill: parent
-                enabled: player.lyricsSynced && line.modelData.time >= 0
+                enabled: view.synced && line.modelData.time >= 0
                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: player.seek(line.modelData.time)
             }
