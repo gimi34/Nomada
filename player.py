@@ -5,10 +5,11 @@ import random
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QSettings, QTimer, QUrl, Property, Signal, Slot
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 
 from albums import AlbumModel
 from covers import CoverProvider
+from levels import LevelMeter
 from metadata import AUDIO_EXTENSIONS, read_audio_info, read_lyrics, read_track
 from playlist import PlaylistModel
 
@@ -28,6 +29,10 @@ def _collect_audio_files(path: str) -> list[str]:
     return []
 
 
+def _device_id(device) -> str:
+    return bytes(device.id().data()).decode("utf-8", "replace")
+
+
 class Player(QObject):
     playingChanged = Signal()
     positionChanged = Signal()
@@ -38,6 +43,9 @@ class Player(QObject):
     queueChanged = Signal()
     lyricsChanged = Signal()
     lyricIndexChanged = Signal()
+    audioDevicesChanged = Signal()
+    audioDeviceChanged = Signal()
+    outputDeviceChanged = Signal()
 
     def __init__(self, covers: CoverProvider, parent=None):
         super().__init__(parent)
@@ -47,6 +55,7 @@ class Player(QObject):
         self._audio = QAudioOutput(self)
         self._media = QMediaPlayer(self)
         self._media.setAudioOutput(self._audio)
+        self._meter = LevelMeter(self._media, self)
         self._index = -1
         self._album_key = ""  # "" = se reproduce toda la lista
         self._shuffle = False
@@ -56,6 +65,10 @@ class Player(QObject):
         self._lyrics_synced = False
         self._lyric_index = -1
         self._audio_info: dict = {}
+        self._audio.deviceChanged.connect(self.outputDeviceChanged)
+        self._device_pref = ""  # "" = salida predeterminada del sistema
+        self._devices = QMediaDevices(self)
+        self._devices.audioOutputsChanged.connect(self._on_outputs_changed)
 
         self._media.playbackStateChanged.connect(lambda *_: self.playingChanged.emit())
         self._media.positionChanged.connect(self._on_position)
@@ -71,7 +84,7 @@ class Player(QObject):
         self._save_timer = QTimer(self, singleShot=True, interval=500)
         self._save_timer.timeout.connect(self.save)
         for signal in (self.trackChanged, self.queueChanged, self.modeChanged,
-                       self.volumeChanged, self._model.countChanged):
+                       self.volumeChanged, self.audioDeviceChanged, self._model.countChanged):
             signal.connect(self._save_timer.start)
 
     # ------------------------------------------------------------------ estado
@@ -172,6 +185,64 @@ class Player(QObject):
     lyrics = Property("QVariantList", _get_lyrics, notify=lyricsChanged)
     lyricsSynced = Property(bool, _get_lyrics_synced, notify=lyricsChanged)
     lyricIndex = Property(int, _get_lyric_index, notify=lyricIndexChanged)
+
+    # ------------------------------------------------------------ salida audio
+    def _apply_device(self):
+        """Usa la salida elegida; si no está conectada, la predeterminada."""
+        outputs = QMediaDevices.audioOutputs()
+        device = next((d for d in outputs if _device_id(d) == self._device_pref), None)
+        if device is None:
+            device = QMediaDevices.defaultAudioOutput()
+        if device != self._audio.device():
+            self._audio.setDevice(device)
+
+    def _on_outputs_changed(self):
+        # Se conectó/desconectó un dispositivo o cambió el predeterminado de Windows
+        self._apply_device()
+        self.audioDevicesChanged.emit()
+
+    def _get_audio_devices(self):
+        default = QMediaDevices.defaultAudioOutput()
+        name = default.description() if not default.isNull() else ""
+        items = [{"id": "", "name": f"Predeterminado del sistema ({name})" if name
+                  else "Predeterminado del sistema"}]
+        items += [{"id": _device_id(d), "name": d.description()}
+                  for d in QMediaDevices.audioOutputs()]
+        return items
+
+    def _get_output_format(self):
+        """Formato con el que trabaja el dispositivo de salida, p. ej. "48 kHz · Estéreo"."""
+        device = self._audio.device()
+        if device.isNull():
+            return ""
+        fmt = device.preferredFormat()
+        rate = fmt.sampleRate()
+        channels = fmt.channelCount()
+        parts = []
+        if rate:
+            parts.append(f"{rate / 1000:g} kHz")
+        if channels:
+            parts.append({1: "Mono", 2: "Estéreo"}.get(channels, f"{channels} canales"))
+        return " · ".join(parts)
+
+    def _get_meter(self):
+        return self._meter
+
+    def _get_audio_device(self):
+        return self._device_pref
+
+    def _set_audio_device(self, device_id):
+        device_id = str(device_id)
+        if device_id != self._device_pref:
+            self._device_pref = device_id
+            self._apply_device()
+            self.audioDeviceChanged.emit()
+
+    audioDevices = Property("QVariantList", _get_audio_devices, notify=audioDevicesChanged)
+    audioDevice = Property(str, _get_audio_device, _set_audio_device, notify=audioDeviceChanged)
+    outputDeviceName = Property(str, lambda self: self._audio.device().description(), notify=outputDeviceChanged)
+    outputFormat = Property(str, _get_output_format, notify=outputDeviceChanged)
+    meter = Property(QObject, _get_meter, constant=True)
 
     # ------------------------------------------------------------------- cola
     def _set_album_key(self, key: str):
@@ -348,6 +419,8 @@ class Player(QObject):
     def _restore(self):
         s = QSettings()
         self._audio.setVolume(s.value("volume", 0.8, type=float))
+        self._device_pref = s.value("audioDevice", "", type=str)
+        self._apply_device()
         self._shuffle = s.value("shuffle", False, type=bool)
         self._repeat = s.value("repeat", REPEAT_OFF, type=int)
         try:
@@ -364,6 +437,7 @@ class Player(QObject):
     def save(self):
         s = QSettings()
         s.setValue("volume", self._audio.volume())
+        s.setValue("audioDevice", self._device_pref)
         s.setValue("shuffle", self._shuffle)
         s.setValue("repeat", self._repeat)
         s.setValue("playlist", json.dumps(self._model.paths()))

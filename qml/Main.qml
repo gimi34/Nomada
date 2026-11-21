@@ -14,11 +14,11 @@ ApplicationWindow {
     visible: true
     title: player.currentIndex >= 0 ? player.title + " — " + player.artist : "Nómada"
 
-    // Vista actual: 0 = Canciones, 1 = Álbumes, 2 = Letra
+    // Vista actual: 0 = Canciones, 1 = Álbumes, 2 = Letra, 3 = Configuración
     property int view: 0
     property int previousView: 0
-    readonly property var viewNames: ["Canciones", "Álbumes", "Letra"]
-    onViewChanged: if (view !== 2) previousView = view
+    readonly property var viewNames: ["Canciones", "Álbumes", "Letra", "Configuración"]
+    onViewChanged: if (view < 2) previousView = view
 
     // Al abrir: volver a donde se quedó la reproducción.
     // Si sonaba un álbum, se abre ese álbum; si no, la lista de canciones.
@@ -72,7 +72,8 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+2"; onActivated: win.view = 1 }
     Shortcut { sequence: "Ctrl+3"; onActivated: win.toggleLyrics() }
     Shortcut { sequence: "Ctrl+I"; onActivated: if (player.currentIndex >= 0) infoDialog.open() }
-    Shortcut { sequence: "Ctrl+,"; onActivated: settingsDialog.open() }
+    Shortcut { sequence: "Ctrl+,"; onActivated: win.view = win.view === 3 ? win.previousView : 3 }
+    Shortcut { sequence: "Escape"; enabled: win.view === 3; onActivated: win.view = win.previousView }
     Shortcut { sequences: [StandardKey.Open]; onActivated: fileDialog.open() }
     Shortcut {
         sequences: [StandardKey.Find]
@@ -98,7 +99,6 @@ ApplicationWindow {
         onAccepted: player.addUrls([selectedFolder])
     }
     InfoDialog { id: infoDialog }
-    SettingsDialog { id: settingsDialog }
 
     SideMenu {
         id: sideMenu
@@ -107,7 +107,7 @@ ApplicationWindow {
         onViewSelected: (v) => win.view = v
         onAddFilesRequested: fileDialog.open()
         onAddFolderRequested: folderDialog.open()
-        onSettingsRequested: settingsDialog.open()
+        onSettingsRequested: win.view = 3
     }
 
     // ------------------------------------------------------------------ layout
@@ -194,6 +194,7 @@ ApplicationWindow {
                         onAddFolderRequested: folderDialog.open()
                     }
                     LyricsView {}
+                    SettingsView {}
                 }
             }
         }

@@ -12,6 +12,10 @@ Nómada es un reproductor de música de escritorio hecho con Python, PySide6 y Q
 - **Arrastrar y soltar**: suelta archivos o carpetas sobre la ventana para agregarlos.
 - **"Abrir con…"**: acepta archivos pasados por línea de comandos.
 - **Memoria**: al cerrar guarda la lista, la pista actual, el volumen y los modos de reproducción.
+- **Configuración**: página propia con tres pestañas:
+  - **Personalización**: tema de la aplicación.
+  - **Sonido**: dispositivo de salida (audífonos, bocinas, monitor… o el predeterminado de Windows), medidor de intensidad de los canales izquierdo y derecho, y calidad del audio que suena.
+  - **Letras**: tamaño, alineación y posición de la letra, con vista previa.
 - **Temas**: "Naranja y negro" o "Sistema", que sigue el modo claro u oscuro y el color de acento de Windows.
 
 Formatos admitidos: MP3, FLAC, OGG, OGA, Opus, M4A, MP4, AAC, WAV, WMA y AIFF.
@@ -55,7 +59,8 @@ python main.py "C:\Música\canción.mp3" "C:\Música\Álbum"
 | `Ctrl + 2` | Álbumes |
 | `Ctrl + 3` | Letra |
 | `Ctrl + I` | Información de la pista |
-| `Ctrl + ,` | Configuración |
+| `Ctrl + ,` | Abrir / cerrar Configuración |
+| `Esc` | Salir de Configuración |
 | `Ctrl + O` | Agregar archivos |
 
 Las teclas multimedia del teclado (reproducir, pausar, siguiente, anterior) también funcionan.
@@ -69,6 +74,7 @@ playlist.py      Modelo de la lista de canciones
 albums.py        Modelo de álbumes
 metadata.py      Lectura de etiquetas, carátulas, letras e información técnica (mutagen)
 covers.py        Proveedor de carátulas para QML (image://cover/…)
+levels.py        Medidor de intensidad de los canales izquierdo y derecho
 settings.py      Preferencias de la aplicación (tema)
 qml/             Interfaz de usuario
 ```

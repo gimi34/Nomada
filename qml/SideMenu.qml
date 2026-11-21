@@ -109,6 +109,7 @@ Drawer {
             glyph: ""
             text: "Configuración"
             shortcut: "Ctrl+,"
+            selected: menu.currentView === 3
             onClicked: menu.pick(menu.settingsRequested)
         }
     }
