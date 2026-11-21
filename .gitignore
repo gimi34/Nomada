@@ -1,0 +1,41 @@
+# Entorno y herramientas
+.claude
+.venv/
+venv/
+.env
+skills-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Empaquetado (PyInstaller / pyside6-deploy, si llegas a crear un .exe)
+build/
+dist/
+*.spec
+deployment/
+*.egg-info/
+
+# Qt / QML
+*.qmlc
+*.jsc
+.qmlls.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Archivos de prueba de audio (para no subir tu música por accidente)
+*.mp3
+*.flac
+*.m4a
+*.ogg
+*.wav
+*.lrc
+
