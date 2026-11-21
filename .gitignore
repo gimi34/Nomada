@@ -5,6 +5,8 @@ venv/
 .env
 skills-lock.json
 
+.gitignore
+
 # Python
 __pycache__/
 *.py[cod]
