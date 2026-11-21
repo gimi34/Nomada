@@ -12,6 +12,7 @@ from covers import CoverProvider
 from levels import LevelMeter
 from metadata import AUDIO_EXTENSIONS, read_audio_info, read_lyrics, read_track
 from playlist import PlaylistModel
+from settings import FLAGS
 
 REPEAT_OFF, REPEAT_ALL, REPEAT_ONE = 0, 1, 2
 
@@ -65,6 +66,10 @@ class Player(QObject):
         self._lyrics_synced = False
         self._lyric_index = -1
         self._audio_info: dict = {}
+        # Al abrir: posición y reproducción que se aplican cuando la canción termina de cargar
+        # (Qt ignora setPosition antes de eso)
+        self._pending_seek = 0
+        self._pending_play = False
         self._audio.deviceChanged.connect(self.outputDeviceChanged)
         self._device_pref = ""  # "" = salida predeterminada del sistema
         self._devices = QMediaDevices(self)
@@ -84,7 +89,8 @@ class Player(QObject):
         self._save_timer = QTimer(self, singleShot=True, interval=500)
         self._save_timer.timeout.connect(self.save)
         for signal in (self.trackChanged, self.queueChanged, self.modeChanged,
-                       self.volumeChanged, self.audioDeviceChanged, self._model.countChanged):
+                       self.volumeChanged, self.audioDeviceChanged, self.playingChanged,
+                       self._model.countChanged):
             signal.connect(self._save_timer.start)
 
     # ------------------------------------------------------------------ estado
@@ -278,6 +284,7 @@ class Player(QObject):
 
     # ----------------------------------------------------------------- acciones
     def _load(self, i: int, play: bool = True):
+        self._pending_seek, self._pending_play = 0, False
         self._index = i
         track = self._model.at(i)
         self._media.setSource(QUrl.fromLocalFile(track.path))
@@ -320,6 +327,12 @@ class Player(QObject):
     def _on_status(self, status):
         if status == QMediaPlayer.MediaStatus.EndOfMedia:
             self._advance(auto=True)
+        elif status == QMediaPlayer.MediaStatus.LoadedMedia:
+            if self._pending_seek:
+                self._media.setPosition(self._pending_seek)
+            if self._pending_play:
+                self._media.play()
+            self._pending_seek, self._pending_play = 0, False
 
     @Slot()
     def togglePlay(self):
@@ -432,6 +445,9 @@ class Player(QObject):
         index = s.value("index", -1, type=int)
         if 0 <= index < len(self._model):
             self._load(index, play=False)
+            if s.value("resumePosition", FLAGS["resumePosition"], type=bool):
+                self._pending_seek = s.value("position", 0, type=int)
+            self._pending_play = s.value("autoplay", FLAGS["autoplay"], type=bool)
 
     @Slot()
     def save(self):
@@ -442,4 +458,5 @@ class Player(QObject):
         s.setValue("repeat", self._repeat)
         s.setValue("playlist", json.dumps(self._model.paths()))
         s.setValue("index", self._index)
+        s.setValue("position", self._media.position())
         s.setValue("album", self._album_key)

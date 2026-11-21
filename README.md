@@ -11,7 +11,7 @@ Nómada es un reproductor de música de escritorio hecho con Python, PySide6 y Q
 - **Modos de reproducción**: aleatorio, repetir todo y repetir una.
 - **Arrastrar y soltar**: suelta archivos o carpetas sobre la ventana para agregarlos.
 - **"Abrir con…"**: acepta archivos pasados por línea de comandos.
-- **Memoria**: al cerrar guarda la lista, la pista actual, el volumen y los modos de reproducción.
+- **Memoria**: al cerrar guarda la lista, la pista actual, el volumen y los modos de reproducción. Opcionalmente (Configuración → Sonido) sigue en el segundo donde se quedó y empieza a sonar sola al abrir.
 - **Configuración**: página propia con tres pestañas:
   - **Personalización**: tema de la aplicación y botón para abrir el **mini reproductor**, una ventana pequeña que flota sobre las demás.
   - **Sonido**: dispositivo de salida (audífonos, bocinas, monitor… o el predeterminado de Windows), medidor de intensidad de los canales izquierdo y derecho, y calidad del audio que suena.

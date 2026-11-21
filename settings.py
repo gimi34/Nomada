@@ -9,6 +9,22 @@ OPTIONS = {
     "lyricsAnchor": ("center", ("top", "center", "bottom")),
 }
 
+# Interruptores: nombre -> valor por defecto
+FLAGS = {
+    "resumePosition": False,  # al abrir, seguir en el segundo donde se quedó
+    "autoplay": False,        # al abrir, reproducir sin pulsar nada
+}
+
+
+def _flag(name: str, notify: Signal):
+    def setter(self, value):
+        if bool(value) != self._values[name]:
+            self._values[name] = bool(value)
+            QSettings().setValue(name, bool(value))
+            self.changed.emit()
+
+    return Property(bool, lambda self: self._values[name], setter, notify=notify)
+
 
 def _option(name: str, notify: Signal):
     def getter(self):
@@ -32,6 +48,8 @@ class AppSettings(QObject):
         for name, (default, allowed) in OPTIONS.items():
             value = s.value(name, default, type=str)
             self._values[name] = value if value in allowed else default
+        for name, default in FLAGS.items():
+            self._values[name] = s.value(name, default, type=bool)
         self._apply_theme()
 
     def _set(self, name: str, value: str):
@@ -51,3 +69,5 @@ class AppSettings(QObject):
     lyricsSize = _option("lyricsSize", changed)
     lyricsAlign = _option("lyricsAlign", changed)
     lyricsAnchor = _option("lyricsAnchor", changed)
+    resumePosition = _flag("resumePosition", changed)
+    autoplay = _flag("autoplay", changed)

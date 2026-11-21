@@ -69,6 +69,49 @@ ColumnLayout {
         }
     }
 
+    // --------------------------------------------------------------- al abrir
+    component SwitchRow: RowLayout {
+        id: row
+        property string name
+        property string hint
+        property string settingKey
+        Layout.fillWidth: true
+        spacing: 12
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 2
+            Label { text: row.name }
+            Label {
+                Layout.fillWidth: true
+                text: row.hint
+                opacity: 0.55
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+        }
+        Switch {
+            checked: appSettings[row.settingKey]
+            focusPolicy: Qt.NoFocus
+            onToggled: appSettings[row.settingKey] = checked
+            Accessible.name: row.name
+        }
+    }
+
+    SettingsCard {
+        title: "Al abrir Nómada"
+
+        SwitchRow {
+            name: "Continuar donde se quedó"
+            hint: "La canción sigue desde el segundo en que la dejaste, no desde el principio."
+            settingKey: "resumePosition"
+        }
+        SwitchRow {
+            name: "Reproducir automáticamente"
+            hint: "La música empieza a sonar sola al abrir la aplicación."
+            settingKey: "autoplay"
+        }
+    }
+
     // ------------------------------------------------------------- intensidad
     SettingsCard {
         title: "Intensidad de los canales"

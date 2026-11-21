@@ -75,7 +75,9 @@ def read_track(path: str) -> Track:
         track_no=_number(tags.get("tracknumber", "")),
         disc_no=_number(tags.get("discnumber", "")),
         duration=duration,
-        has_cover=read_cover(path) is not None,
+        # Reusar el archivo ya abierto; los envoltorios "Easy" (MP3/MP4) ocultan la carátula
+        has_cover=(read_cover(path) if audio is None or type(audio).__name__.startswith("Easy")
+                   else _cover_from(audio)) is not None,
     )
 
 
@@ -83,8 +85,13 @@ def read_cover(path: str) -> bytes | None:
     """Devuelve los bytes de la carátula embebida, o None."""
     try:
         audio = MutagenFile(path)
-        if audio is None:
-            return None
+    except Exception:
+        return None
+    return _cover_from(audio) if audio is not None else None
+
+
+def _cover_from(audio) -> bytes | None:
+    try:
         pictures = getattr(audio, "pictures", None)  # FLAC
         if pictures:
             return pictures[0].data
