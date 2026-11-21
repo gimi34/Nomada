@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-// Todas las canciones de la lista.
+// Todas las canciones de la lista (filtradas por el buscador).
 Item {
     id: view
     signal addFolderRequested()
@@ -10,45 +10,53 @@ Item {
         id: list
         anchors.fill: parent
         clip: true
-        model: player.playlist
+        model: songSearch
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar {}
 
         delegate: TrackRow {
-            required property int index
             required property var model
-            width: ListView.view.width
-            number: index + 1
+            // model.row = posición en la lista completa, aunque haya un filtro
+            width: list.width
+            number: model.row + 1
             title: model.title
             artist: model.artist
             duration: model.duration
             cover: model.cover
-            current: index === player.currentIndex
+            current: model.row === player.currentIndex
             removable: true
-            onActivated: player.playIndex(index)
-            onRemoveRequested: player.removeAt(index)
+            onActivated: player.playIndex(model.row)
+            onRemoveRequested: player.removeAt(model.row)
         }
     }
 
     EmptyState {
         anchors.centerIn: parent
-        visible: list.count === 0
+        visible: player.playlist.count === 0
         text: "Arrastra canciones o carpetas aquí"
         actionText: "Agregar carpeta…"
         onAction: view.addFolderRequested()
     }
 
+    EmptyState {
+        anchors.centerIn: parent
+        visible: player.playlist.count > 0 && list.count === 0
+        glyph: ""
+        text: "No hay canciones que coincidan con «" + songSearch.filterText + "»"
+        detail: "Prueba con otra palabra: se busca en el título, el artista y el álbum."
+    }
+
+    function showCurrent(mode) {
+        const row = player.currentIndex >= 0 ? songSearch.proxyRow(player.currentIndex) : -1
+        if (row >= 0)
+            list.positionViewAtIndex(row, mode)
+    }
+
     Connections {
         target: player
-        function onTrackChanged() {
-            if (player.currentIndex >= 0)
-                list.positionViewAtIndex(player.currentIndex, ListView.Contain)
-        }
+        function onTrackChanged() { view.showCurrent(ListView.Contain) }
     }
 
     // Al abrir la app, mostrar la canción que quedó seleccionada
-    Component.onCompleted: {
-        if (player.currentIndex >= 0)
-            Qt.callLater(() => list.positionViewAtIndex(player.currentIndex, ListView.Center))
-    }
+    Component.onCompleted: Qt.callLater(() => view.showCurrent(ListView.Center))
 }

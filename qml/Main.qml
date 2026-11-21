@@ -28,6 +28,8 @@ ApplicationWindow {
         }
     }
 
+    readonly property bool searchVisible: view === 0 || (view === 1 && albumsView.openKey === "")
+
     // Alterna entre la letra y la vista anterior
     function toggleLyrics() {
         view = view === 2 ? previousView : 2
@@ -66,6 +68,14 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+I"; onActivated: if (player.currentIndex >= 0) infoDialog.open() }
     Shortcut { sequence: "Ctrl+,"; onActivated: settingsDialog.open() }
     Shortcut { sequences: [StandardKey.Open]; onActivated: fileDialog.open() }
+    Shortcut {
+        sequences: [StandardKey.Find]
+        onActivated: {
+            if (!win.searchVisible) view = 0
+            searchField.forceActiveFocus()
+            searchField.selectAll()
+        }
+    }
 
     // ------------------------------------------------------- diálogos y menú
     FileDialog {
@@ -150,18 +160,20 @@ ApplicationWindow {
                         font.pixelSize: 24
                         font.bold: true
                     }
-                    Label {
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        Layout.alignment: Qt.AlignBottom
-                        bottomPadding: 4
-                        text: player.playlist.count > 0
-                              ? Util.songs(player.playlist.count) + "  ·  " + Util.minutes(player.playlist.totalDuration)
-                              : ""
-                        horizontalAlignment: Text.AlignRight
-                        elide: Text.ElideRight
-                        opacity: 0.55
-                        font.pixelSize: 12
+                    Item { Layout.fillWidth: true }
+
+                    // Buscador: en Canciones y en la cuadrícula de Álbumes (no dentro de un álbum ni en Letra)
+                    SearchField {
+                        id: searchField
+                        Layout.preferredWidth: 320
+                        Layout.minimumWidth: 160
+                        visible: win.searchVisible
+                        placeholderText: win.view === 1 ? "Buscar álbumes, artistas o canciones"
+                                                        : "Buscar canciones, artistas o álbumes"
+                        onTextChanged: {
+                            songSearch.filterText = text
+                            albumSearch.filterText = text
+                        }
                     }
                 }
 

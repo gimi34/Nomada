@@ -26,7 +26,7 @@ Item {
         anchors.rightMargin: 10
         visible: view.openKey === ""
         clip: true
-        model: player.albums
+        model: albumSearch  // filtrado por el buscador
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar {}
 
@@ -107,12 +107,20 @@ Item {
 
     EmptyState {
         anchors.centerIn: parent
-        visible: grid.count === 0 && view.openKey === ""
+        visible: player.playlist.count === 0 && view.openKey === ""
         glyph: ""
         text: "Todavía no hay álbumes"
         detail: "Las canciones se agrupan por la etiqueta de álbum o, si no la tienen, por carpeta."
         actionText: "Agregar carpeta…"
         onAction: view.addFolderRequested()
+    }
+
+    EmptyState {
+        anchors.centerIn: parent
+        visible: player.playlist.count > 0 && grid.count === 0 && view.openKey === ""
+        glyph: ""
+        text: "No hay álbumes que coincidan con «" + albumSearch.filterText + "»"
+        detail: "Se busca en el nombre del álbum, el artista y los títulos de sus canciones."
     }
 
     // --------------------------------------------------------------- detalle
