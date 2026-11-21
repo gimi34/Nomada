@@ -11,13 +11,22 @@ ApplicationWindow {
     minimumWidth: 860
     minimumHeight: 600
     visible: true
-    title: player.currentIndex >= 0 ? player.title + " — " + player.artist : "Reproductor"
+    title: player.currentIndex >= 0 ? player.title + " — " + player.artist : "Nómada"
 
     // Vista actual: 0 = Canciones, 1 = Álbumes, 2 = Letra
     property int view: 0
     property int previousView: 0
     readonly property var viewNames: ["Canciones", "Álbumes", "Letra"]
     onViewChanged: if (view !== 2) previousView = view
+
+    // Al abrir: volver a donde se quedó la reproducción.
+    // Si sonaba un álbum, se abre ese álbum; si no, la lista de canciones.
+    Component.onCompleted: {
+        if (player.albumKey !== "") {
+            view = 1
+            albumsView.openKey = player.albumKey
+        }
+    }
 
     // Alterna entre la letra y la vista anterior
     function toggleLyrics() {
@@ -162,7 +171,10 @@ ApplicationWindow {
                     currentIndex: win.view
 
                     SongsView { onAddFolderRequested: folderDialog.open() }
-                    AlbumsView { onAddFolderRequested: folderDialog.open() }
+                    AlbumsView {
+                        id: albumsView
+                        onAddFolderRequested: folderDialog.open()
+                    }
                     LyricsView {}
                 }
             }

@@ -52,7 +52,7 @@ Drawer {
                 onClicked: menu.close()
             }
             Label {
-                text: "Reproductor"
+                text: "Nómada"
                 font.pixelSize: 18
                 font.bold: true
             }

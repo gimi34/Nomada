@@ -5,8 +5,9 @@ from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt, Property, Signal
 
 from covers import CoverProvider
 from playlist import PlaylistModel
+from search import normalize
 
-_ROLES = ["key", "title", "artist", "year", "count", "duration", "cover"]
+_ROLES = ["key", "title", "artist", "year", "count", "duration", "cover", "search"]
 
 
 @dataclass
@@ -17,6 +18,7 @@ class Album:
     year: str = ""
     duration: int = 0
     cover: str = ""
+    search: str = ""
     indices: list[int] = field(default_factory=list)  # índices en la lista, en orden de pista
 
     @property
@@ -79,6 +81,7 @@ class AlbumModel(QAbstractListModel):
             album.year = next((t.year for t in members if t.year), "")
             album.duration = sum(t.duration for t in members)
             album.cover = next((self._covers.url_for(t) for t in members if t.has_cover), "")
+            album.search = normalize(" ".join([album.title, album.artist] + [t.title for t in members]))
 
         self.beginResetModel()
         self._albums = sorted(groups.values(), key=lambda a: (a.artist.casefold(), a.year, a.title.casefold()))

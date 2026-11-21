@@ -2,8 +2,9 @@ from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt, Property, Signal
 
 from covers import CoverProvider
 from metadata import Track
+from search import normalize
 
-_ROLES = ["title", "artist", "album", "duration", "cover", "path"]
+_ROLES = ["title", "artist", "album", "duration", "cover", "path", "row", "search"]
 
 
 class PlaylistModel(QAbstractListModel):
@@ -28,6 +29,10 @@ class PlaylistModel(QAbstractListModel):
         name = _ROLES[role - Qt.ItemDataRole.UserRole] if role >= Qt.ItemDataRole.UserRole else None
         if name == "cover":
             return self._covers.url_for(track)
+        if name == "row":  # posición en la lista completa (se mantiene al filtrar)
+            return index.row()
+        if name == "search":
+            return normalize(f"{track.title} {track.artist} {track.album}")
         if name:
             return getattr(track, name)
         return None
@@ -64,6 +69,10 @@ class PlaylistModel(QAbstractListModel):
         self.beginRemoveRows(QModelIndex(), i, i)
         del self._tracks[i]
         self.endRemoveRows()
+        # Las canciones siguientes subieron una posición: avisar del cambio de "row"
+        if i < len(self._tracks):
+            row_role = Qt.ItemDataRole.UserRole + _ROLES.index("row")
+            self.dataChanged.emit(self.index(i), self.index(len(self._tracks) - 1), [row_role])
         self.countChanged.emit()
 
     def clear(self):

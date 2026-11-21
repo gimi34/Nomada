@@ -45,4 +45,10 @@ Item {
                 list.positionViewAtIndex(player.currentIndex, ListView.Contain)
         }
     }
+
+    // Al abrir la app, mostrar la canción que quedó seleccionada
+    Component.onCompleted: {
+        if (player.currentIndex >= 0)
+            Qt.callLater(() => list.positionViewAtIndex(player.currentIndex, ListView.Center))
+    }
 }

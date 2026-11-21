@@ -4,7 +4,7 @@ import os
 import random
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QSettings, QUrl, Property, Signal, Slot
+from PySide6.QtCore import QObject, QSettings, QTimer, QUrl, Property, Signal, Slot
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from albums import AlbumModel
@@ -65,6 +65,14 @@ class Player(QObject):
         self._audio.mutedChanged.connect(lambda *_: self.volumeChanged.emit())
 
         self._restore()
+
+        # Guardar al momento cada cambio (no solo al cerrar): así no se pierde
+        # nada aunque se cierre la terminal o la app termine de golpe.
+        self._save_timer = QTimer(self, singleShot=True, interval=500)
+        self._save_timer.timeout.connect(self.save)
+        for signal in (self.trackChanged, self.queueChanged, self.modeChanged,
+                       self.volumeChanged, self._model.countChanged):
+            signal.connect(self._save_timer.start)
 
     # ------------------------------------------------------------------ estado
     def _track(self):

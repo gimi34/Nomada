@@ -9,6 +9,7 @@ Item {
     property real radius: 8
     property int glyphSize: 24
     property int decodeSize: 128
+    property bool asynchronous: true
 
     readonly property color accent: ApplicationWindow.window ? ApplicationWindow.window.accent : "#ff7a1a"
 
@@ -35,7 +36,7 @@ Item {
         source: art.source
         sourceSize: Qt.size(art.decodeSize, art.decodeSize)
         fillMode: Image.PreserveAspectCrop
-        asynchronous: true
+        asynchronous: art.asynchronous
         visible: false
     }
     Rectangle {

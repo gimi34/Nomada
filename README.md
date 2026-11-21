@@ -1,6 +1,6 @@
-# Reproductor
+# Nómada
 
-Reproductor de música de escritorio hecho con Python, PySide6 y QML. En Windows 11 usa el estilo nativo Fluent (WinUI 3).
+Nómada es un reproductor de música de escritorio hecho con Python, PySide6 y QML. En Windows 11 usa el estilo nativo Fluent (WinUI 3).
 
 ## Características
 
@@ -76,4 +76,4 @@ qml/             Interfaz de usuario
 ## Datos guardados
 
 Las preferencias y la lista se guardan con `QSettings`. En Windows quedan en el registro, en
-`HKEY_CURRENT_USER\Software\Reproductor\Reproductor`, no en la carpeta del proyecto.
+`HKEY_CURRENT_USER\Software\Nomada\Nomada`, no en la carpeta del proyecto.

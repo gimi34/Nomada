@@ -142,6 +142,8 @@ Item {
                 radius: 8
                 glyphSize: 48
                 decodeSize: 320
+                // Carga directa: en modo asíncrono esta carátula a veces no llegaba a mostrarse
+                asynchronous: false
             }
 
             ColumnLayout {
