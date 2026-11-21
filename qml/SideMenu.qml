@@ -63,7 +63,7 @@ Drawer {
             model: [
                 { glyph: "", text: "Canciones", key: "Ctrl+1" },
                 { glyph: "", text: "Álbumes",   key: "Ctrl+2" },
-                { glyph: "", text: "Letra",     key: "Ctrl+3" },
+                { glyph: "", text: "Letra",     key: "Ctrl+3" },
             ]
             MenuRow {
                 required property int index

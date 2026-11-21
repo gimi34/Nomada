@@ -60,7 +60,7 @@ Item {
     EmptyState {
         anchors.centerIn: parent
         visible: lyrics.count === 0
-        glyph: ""
+        glyph: ""
         text: player.currentIndex < 0 ? "Reproduce una canción para ver su letra"
                                       : "Esta canción no tiene letra"
         detail: player.currentIndex < 0 ? ""

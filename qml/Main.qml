@@ -15,7 +15,14 @@ ApplicationWindow {
 
     // Vista actual: 0 = Canciones, 1 = Álbumes, 2 = Letra
     property int view: 0
+    property int previousView: 0
     readonly property var viewNames: ["Canciones", "Álbumes", "Letra"]
+    onViewChanged: if (view !== 2) previousView = view
+
+    // Alterna entre la letra y la vista anterior
+    function toggleLyrics() {
+        view = view === 2 ? previousView : 2
+    }
 
     // Colores compartidos (los demás archivos los leen vía ApplicationWindow.window)
     readonly property bool orangeTheme: appSettings.theme === "orange"
@@ -46,7 +53,7 @@ ApplicationWindow {
     Shortcut { sequence: "M"; onActivated: player.muted = !player.muted }
     Shortcut { sequence: "Ctrl+1"; onActivated: win.view = 0 }
     Shortcut { sequence: "Ctrl+2"; onActivated: win.view = 1 }
-    Shortcut { sequence: "Ctrl+3"; onActivated: win.view = 2 }
+    Shortcut { sequence: "Ctrl+3"; onActivated: win.toggleLyrics() }
     Shortcut { sequence: "Ctrl+I"; onActivated: if (player.currentIndex >= 0) infoDialog.open() }
     Shortcut { sequence: "Ctrl+,"; onActivated: settingsDialog.open() }
     Shortcut { sequences: [StandardKey.Open]; onActivated: fileDialog.open() }
@@ -87,6 +94,8 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.preferredWidth: Math.max(320, win.width * 0.38)
             onInfoRequested: infoDialog.open()
+            lyricsShown: win.view === 2
+            onLyricsToggled: win.toggleLyrics()
 
             IconButton {
                 anchors.left: parent.left

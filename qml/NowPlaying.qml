@@ -9,6 +9,8 @@ Item {
     id: nowPlaying
     clip: true
     signal infoRequested()
+    signal lyricsToggled()
+    property bool lyricsShown: false
 
     readonly property real coverSize: Math.max(140, Math.min(width - 80, height - 400))
     readonly property color accent: ApplicationWindow.window ? ApplicationWindow.window.accent : "#ff7a1a"
@@ -154,7 +156,7 @@ Item {
         // Volumen
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 280
+            Layout.preferredWidth: 320
             IconButton {
                 glyph: player.muted || player.volume === 0 ? ""
                      : player.volume < 0.34 ? ""
@@ -174,6 +176,26 @@ Item {
                 opacity: 0.6
                 font.pixelSize: 12
                 Layout.preferredWidth: 26
+            }
+            IconButton {
+                id: lyricsButton
+                Layout.leftMargin: 6
+                glyph: ""
+                tip: nowPlaying.lyricsShown ? "Volver (Ctrl+3)" : "Ver letra (Ctrl+3)"
+                checked: nowPlaying.lyricsShown
+                onClicked: nowPlaying.lyricsToggled()
+
+                // Punto que indica que la canción tiene letra
+                Rectangle {
+                    visible: player.lyrics.length > 0 && !lyricsButton.checked
+                    width: 7
+                    height: 7
+                    radius: 3.5
+                    color: nowPlaying.accent
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 6
+                }
             }
         }
 
