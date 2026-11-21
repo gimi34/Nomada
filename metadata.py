@@ -110,6 +110,7 @@ def read_cover(path: str) -> bytes | None:
 _LRC_TIME = re.compile(r"\[(\d+):(\d{1,2}(?:[.:]\d{1,3})?)\]")
 _LRC_OFFSET = re.compile(r"\[offset:\s*([+-]?\d+)\s*\]", re.IGNORECASE)
 _LRC_WORD_TIME = re.compile(r"<\d+:\d+(?:[.:]\d+)?>")
+_LRC_VOICE = re.compile(r"^v\d+:\s*")  # marca de voz/cantante ("v1:", "v2:") de algunos LRC
 
 Lyrics = list[tuple[int, str]]  # (milisegundos o -1 si no está sincronizada, texto)
 
@@ -129,7 +130,7 @@ def parse_lrc(text: str) -> Lyrics:
             minutes, seconds = int(m.group(1)), float(m.group(2).replace(":", "."))
             times.append(int(minutes * 60000 + seconds * 1000))
             pos = m.end()
-        lyric = _LRC_WORD_TIME.sub("", raw[pos:]).strip()
+        lyric = _LRC_VOICE.sub("", _LRC_WORD_TIME.sub("", raw[pos:]).strip())
         lines += [(max(0, t - offset), lyric) for t in times]
     return sorted(lines, key=lambda line: line[0])
 

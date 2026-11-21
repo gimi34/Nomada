@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 
 // Información detallada de la canción actual y su calidad de audio.
@@ -10,6 +11,32 @@ Dialog {
     anchors.centerIn: Overlay.overlay
     width: Math.min(520, Overlay.overlay ? Overlay.overlay.width - 48 : 520)
     standardButtons: Dialog.Close
+
+    // Fondo modal: el resto de la ventana desenfocado y oscurecido
+    Overlay.modal: Item {
+        ShaderEffectSource {
+            id: snapshot
+            anchors.fill: parent
+            sourceItem: ApplicationWindow.window ? ApplicationWindow.window.contentItem : null
+            visible: false
+        }
+        // El contenido no incluye el fondo de la ventana: sin esto se vería la versión nítida debajo
+        Rectangle {
+            anchors.fill: parent
+            color: ApplicationWindow.window ? ApplicationWindow.window.palette.window : "black"
+        }
+        MultiEffect {
+            anchors.fill: parent
+            source: snapshot
+            blurEnabled: true
+            blur: 1.0
+            blurMax: 48
+        }
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(0, 0, 0, 0.35)
+        }
+    }
 
     readonly property var info: player.audioInfo
     readonly property color accent: ApplicationWindow.window ? ApplicationWindow.window.accent : "orange"

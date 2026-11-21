@@ -31,6 +31,18 @@ ApplicationWindow {
 
     readonly property bool searchVisible: view === 0 || (view === 1 && albumsView.openKey === "")
 
+    // Mini reproductor: oculta la ventana grande y muestra la flotante
+    function enterMini() {
+        miniPlayer.show()
+        win.hide()
+    }
+    function exitMini() {
+        win.show()
+        win.raise()
+        win.requestActivate()
+        miniPlayer.hide()
+    }
+
     // Alterna entre la letra y la vista anterior
     function toggleLyrics() {
         view = view === 2 ? previousView : 2
@@ -99,6 +111,7 @@ ApplicationWindow {
         onAccepted: player.addUrls([selectedFolder])
     }
     InfoDialog { id: infoDialog }
+    MiniPlayer { id: miniPlayer; mainWindow: win }
 
     SideMenu {
         id: sideMenu
@@ -161,17 +174,70 @@ ApplicationWindow {
                     Layout.topMargin: 18
                     Layout.bottomMargin: 10
 
+                    IconButton {
+                        visible: win.view === 3
+                        glyph: ""  // flecha atrás
+                        tip: "Volver a " + win.viewNames[win.previousView] + " (Esc)"
+                        onClicked: win.view = win.previousView
+                    }
                     Label {
-                        text: win.viewNames[win.view]
+                        visible: win.view === 3
+                        text: win.viewNames[3]
                         font.pixelSize: 24
                         font.bold: true
+                    }
+                    // Navegación principal: el título de cada vista es también su pestaña
+                    Row {
+                        visible: win.view !== 3
+                        spacing: 18
+                        Repeater {
+                            model: 3
+                            Label {
+                                id: tab
+                                required property int index
+                                readonly property bool current: win.view === index
+                                text: win.viewNames[index]
+                                font.pixelSize: 22
+                                font.bold: true
+                                opacity: current ? 1 : tabHover.hovered ? 0.8 : 0.45
+                                Behavior on opacity { NumberAnimation { duration: 120 } }
+                                Accessible.role: Accessible.PageTab
+                                Accessible.name: text
+
+                                HoverHandler { id: tabHover; cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: {
+                                        // Pulsar «Álbumes» dentro de un álbum vuelve a la cuadrícula
+                                        if (tab.index === 1 && win.view === 1) albumsView.openKey = ""
+                                        win.view = tab.index
+                                    }
+                                }
+                                ToolTip.text: "Ctrl+" + (index + 1)
+                                ToolTip.visible: tabHover.hovered && !current
+                                ToolTip.delay: 600
+
+                                Rectangle {
+                                    visible: tab.current
+                                    anchors.top: parent.bottom
+                                    anchors.topMargin: 2
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: 18
+                                    height: 3
+                                    radius: 1.5
+                                    color: win.accent
+                                }
+                            }
+                        }
                     }
                     Item { Layout.fillWidth: true }
 
                     // Buscador: en Canciones y en la cuadrícula de Álbumes (no dentro de un álbum ni en Letra)
                     SearchField {
                         id: searchField
+                        // Se encoge (hasta 160) cuando la ventana es estrecha
+                        Layout.fillWidth: true
                         Layout.preferredWidth: 320
+                        Layout.maximumWidth: 320
                         Layout.minimumWidth: 160
                         visible: win.searchVisible
                         placeholderText: win.view === 1 ? "Buscar álbumes, artistas o canciones"

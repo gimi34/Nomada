@@ -223,6 +223,18 @@ Item {
                         wrapMode: Text.WordWrap
                     }
                 }
+
+                SettingsCard {
+                    title: "Mini reproductor"
+                    subtitle: "Cambia a una ventana pequeña que flota sobre las demás. Arrástrala a donde quieras "
+                            + "y usa su botón de la esquina para volver al reproductor completo."
+
+                    Button {
+                        text: "Abrir mini reproductor"
+                        highlighted: true
+                        onClicked: ApplicationWindow.window.enterMini()
+                    }
+                }
             }
 
             // ---------------------------------------------------------------- sonido
