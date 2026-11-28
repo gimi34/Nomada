@@ -108,6 +108,7 @@ Item {
     EmptyState {
         anchors.centerIn: parent
         visible: player.playlist.count === 0 && view.openKey === ""
+        logo: true
         glyph: ""
         text: "Todavía no hay álbumes"
         detail: "Las canciones se agrupan por la etiqueta de álbum o, si no la tienen, por carpeta."

@@ -52,7 +52,7 @@ Nómada no está firmado digitalmente, así que Windows puede desconfiar de un a
 
 - **"Windows protegió su PC"** (SmartScreen): pulsa *Más información* → *Ejecutar de todas formas*.
 - **Zip descargado**: antes de extraerlo, clic derecho → *Propiedades* → marca **Desbloquear** → *Aceptar*.
-- **Control inteligente de aplicaciones** (Smart App Control): si está activado, bloquea los programas sin firma y no admite excepciones por programa. En ese caso puedes usar Nómada desde el código fuente (ver abajo), que se ejecuta con el `python.exe` oficial, que sí está firmado.
+- **Control inteligente de aplicaciones** (Smart App Control): si está activado, bloquea los programas sin firma y no admite excepciones por programa. El instalador puede quedar bloqueado; la **versión portable** suele funcionar. Si tampoco arranca, usa Nómada desde el código fuente (ver abajo), que se ejecuta con el `python.exe` oficial, que sí está firmado.
 
 ## Ejecutar desde el código fuente
 
@@ -146,6 +146,8 @@ settings.py        Preferencias de la aplicación (tema, sonido, letras)
 bench.py           Mide el rendimiento (arranque, buscador, álbumes, medidor) con tu biblioteca
 Nomada.iss         Script del instalador (Inno Setup)
 qml/               Interfaz de usuario
+qml/images/        Icono, símbolo y pantalla de carga (recortados de iconos/iconos.jpg)
+iconos/            Hoja de iconos original y nomada.ico (icono del .exe y del instalador)
 ```
 
 ## Datos guardados

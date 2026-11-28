@@ -40,6 +40,10 @@ El grafo de graphify (`graphify-out/graph.json`, ignorado por git) es el mapa de
 - **Preferencias:** `settings.py` → `OPTIONS` (opciones de texto) y `FLAGS` (interruptores).
   `AppSettings` las expone a QML; `Player` lee `QSettings` usando `FLAGS` como valor por defecto.
 - **Metadatos:** todo pasa por `metadata.py`. `read_track` se ejecuta una vez por canción al arrancar.
+- **Marca:** las imágenes de `qml/images/` salen de la hoja `iconos/iconos.jpg` (JPG sin transparencia:
+  el símbolo se recortó quitando el fondo por color). El símbolo sin fondo se ve lavado sobre claro:
+  usa `AppLogo.qml`, que cambia al icono con cuadro en temas claros. `main.py` usa `QApplication`
+  (no `QGuiApplication`) solo por la pantalla de carga (`QSplashScreen`).
 - **Configuración en la interfaz:** `qml/SettingsView.qml` (pestañas) + `SettingsCard` para agrupar;
   la pestaña Sonido vive en `qml/SoundSettings.qml`.
 
@@ -85,3 +89,7 @@ Mide antes y después con `bench.py` (usa la biblioteca real guardada en QSettin
   al final. No toques los ajustes reales del usuario; si cambias el volumen para probar, restáuralo.
 - Empaquetado: `python -m PyInstaller --noconfirm --clean --name Nomada --windowed --add-data "qml;qml" main.py`
   y luego `ISCC Nomada.iss` (Inno Setup en `%LOCALAPPDATA%\Programs\Inno Setup 6`).
+  **No uses `--icon`:** incrustar el icono cambia la huella del .exe y Smart App Control lo bloquea
+  (sin él conserva la del lanzador de PyInstaller y arranca; comprobado el 2026-11-27). El logo llega
+  igual a la ventana (`setWindowIcon`) y a los accesos directos (`nomada.ico` en `Nomada.iss`).
+  El instalador de Inno puede bloquearse según la versión, con o sin icono: pruébalo antes de publicar.

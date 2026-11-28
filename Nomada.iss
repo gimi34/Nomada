@@ -3,7 +3,7 @@
 ; Compilar: ISCC Nomada.iss  ->  dist\NomadaSetup-<versión>.exe
 
 #define AppName "Nómada"
-#define AppVersion "1.1.0"
+#define AppVersion "1.2.0"
 #define AppExe "Nomada.exe"
 
 [Setup]
@@ -15,7 +15,8 @@ AppPublisher=gimi34
 AppPublisherURL=https://github.com/gimi34/Nomada
 DefaultDirName={autopf}\Nomada
 DefaultGroupName={#AppName}
-UninstallDisplayIcon={app}\{#AppExe}
+UninstallDisplayIcon={app}\nomada.ico
+SetupIconFile=iconos\nomada.ico
 OutputDir=dist
 OutputBaseFilename=NomadaSetup-{#AppVersion}
 Compression=lzma2
@@ -34,11 +35,14 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\Nomada\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; El logo va como .ico aparte y no dentro del .exe: incrustarlo cambia la huella del .exe
+; y Smart App Control lo bloquea (sin incrustar, conserva la del lanzador de PyInstaller).
+Source: "iconos\nomada.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"; IconFilename: "{app}\nomada.ico"
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; IconFilename: "{app}\nomada.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent

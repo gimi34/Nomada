@@ -52,6 +52,10 @@ Drawer {
                 tip: "Cerrar menú"
                 onClicked: menu.close()
             }
+            AppLogo {
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+            }
             Label {
                 text: "Nómada"
                 font.pixelSize: 18

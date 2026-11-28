@@ -33,6 +33,7 @@ Item {
     EmptyState {
         anchors.centerIn: parent
         visible: player.playlist.count === 0
+        logo: true
         text: "Arrastra canciones o carpetas aquí"
         actionText: "Agregar carpeta…"
         onAction: view.addFolderRequested()

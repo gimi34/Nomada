@@ -2,10 +2,11 @@ import os
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QUrl
-from PySide6.QtGui import QFontDatabase, QGuiApplication
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QFontDatabase, QIcon, QPixmap
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
+from PySide6.QtWidgets import QApplication, QSplashScreen
 
 from covers import CoverProvider
 from media_controls import MediaControls
@@ -13,11 +14,22 @@ from player import Player
 from search import SearchFilterModel
 from settings import AppSettings
 
+QML_DIR = Path(__file__).parent / "qml"
+
 
 def main():
-    QGuiApplication.setOrganizationName("Nomada")
-    QGuiApplication.setApplicationName("Nomada")
-    app = QGuiApplication(sys.argv)
+    QApplication.setOrganizationName("Nomada")
+    QApplication.setApplicationName("Nomada")
+    # QApplication (no QGuiApplication) solo por QSplashScreen, que es de QtWidgets
+    app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(str(QML_DIR / "images" / "app-icon.png")))  # ventana y barra de tareas
+
+    # Pantalla de carga: se pinta ya, antes de leer las etiquetas de toda la biblioteca
+    splash_image = QPixmap(str(QML_DIR / "images" / "splash.png"))
+    splash_image.setDevicePixelRatio(splash_image.width() / 520)  # 520 px lógicos, nítida con escalado
+    splash = QSplashScreen(splash_image)
+    splash.show()
+    app.processEvents()
 
     if sys.platform == "win32":
         QQuickStyle.setStyle("FluentWinUI3")  # aspecto nativo de Windows 11
@@ -45,9 +57,15 @@ def main():
     engine.rootContext().setContextProperty("songSearch", song_search)
     engine.rootContext().setContextProperty("albumSearch", album_search)
     engine.rootContext().setContextProperty("iconFont", icon_font)
-    engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "qml" / "Main.qml")))
+    engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         sys.exit(-1)
+
+    # Se cierra cuando la ventana ya dibujó su primer fotograma (sin hueco entre las dos).
+    # frameSwapped llega desde el hilo de dibujo: en cola y una sola vez.
+    once_queued = Qt.ConnectionType(Qt.ConnectionType.QueuedConnection.value
+                                    | Qt.ConnectionType.SingleShotConnection.value)
+    engine.rootObjects()[0].frameSwapped.connect(splash.close, once_queued)
 
     sys.exit(app.exec())
 
