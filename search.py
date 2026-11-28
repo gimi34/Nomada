@@ -1,8 +1,13 @@
 import unicodedata
+from functools import lru_cache
 
 from PySide6.QtCore import QSortFilterProxyModel, Property, Signal, Slot
 
 
+# El buscador pide el texto de cada canción en cada tecla: así se normaliza una sola vez.
+# shortcut: con más de 16384 canciones la caché se recicla y vuelve a costar como antes;
+# entonces conviene guardar el texto normalizado en el propio Track.
+@lru_cache(maxsize=16384)
 def normalize(text: str) -> str:
     """Minúsculas y sin acentos, para buscar "cancion" y encontrar "Canción"."""
     return "".join(c for c in unicodedata.normalize("NFD", text.casefold())

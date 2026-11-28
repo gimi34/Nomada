@@ -3,7 +3,7 @@
 ; Compilar: ISCC Nomada.iss  ->  dist\NomadaSetup-<versión>.exe
 
 #define AppName "Nómada"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppExe "Nomada.exe"
 
 [Setup]

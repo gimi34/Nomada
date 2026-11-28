@@ -10,6 +10,7 @@ Drawer {
     signal addFilesRequested()
     signal addFolderRequested()
     signal settingsRequested()
+    signal miniRequested()
 
     width: 280
     edge: Qt.LeftEdge
@@ -103,6 +104,13 @@ Drawer {
         Item { Layout.fillHeight: true }
 
         Separator {}
+        MenuRow {
+            Layout.fillWidth: true
+            glyph: ""
+            text: "Mini reproductor"
+            shortcut: "Ctrl+M"
+            onClicked: menu.pick(menu.miniRequested)
+        }
         MenuRow {
             Layout.fillWidth: true
             Layout.bottomMargin: 12

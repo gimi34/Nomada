@@ -12,9 +12,12 @@ Item {
     readonly property color accent: win ? win.accent : "#ff7a1a"
     readonly property color fg: win ? win.palette.windowText : "white"
     readonly property bool synced: player.lyricsSynced
+    // Compacta: dentro del panel de la portada (letra más pequeña y sin márgenes laterales)
+    property bool compact: false
 
     // Preferencias (Configuración → Letras)
-    readonly property int fontSize: ({ small: 22, medium: 28, large: 36, xlarge: 46 })[appSettings.lyricsSize] ?? 36
+    readonly property int baseFontSize: ({ small: 22, medium: 28, large: 36, xlarge: 46 })[appSettings.lyricsSize] ?? 36
+    readonly property int fontSize: compact ? Math.round(baseFontSize * 0.6) : baseFontSize
     readonly property int hAlign: ({ left: Text.AlignLeft, center: Text.AlignHCenter, right: Text.AlignRight })[appSettings.lyricsAlign] ?? Text.AlignHCenter
     readonly property real anchorRatio: ({ top: 0.16, center: 0.38, bottom: 0.6 })[appSettings.lyricsAnchor] ?? 0.38
 
@@ -22,8 +25,8 @@ Item {
     ListView {
         id: lyrics
         anchors.fill: parent
-        anchors.leftMargin: 48
-        anchors.rightMargin: 48
+        anchors.leftMargin: view.compact ? 0 : 48
+        anchors.rightMargin: view.compact ? 0 : 48
         visible: count > 0
         clip: true
         model: player.lyrics
@@ -111,6 +114,7 @@ Item {
 
     EmptyState {
         anchors.centerIn: parent
+        width: Math.min(380, view.width)
         visible: lyrics.count === 0
         glyph: ""
         text: player.currentIndex < 0 ? "Reproduce una canción para ver su letra"

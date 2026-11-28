@@ -11,6 +11,8 @@ Item {
     signal infoRequested()
     signal lyricsToggled()
     property bool lyricsShown: false
+    // Letra en lugar de la portada (clic en la portada); la lista de la derecha sigue a la vista
+    property bool coverLyrics: false
 
     readonly property real coverSize: Math.max(140, Math.min(width - 80, height - 400))
     readonly property color accent: ApplicationWindow.window ? ApplicationWindow.window.accent : "#ff7a1a"
@@ -52,23 +54,80 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 40
+        anchors.topMargin: nowPlaying.coverLyrics ? 60 : 40  // deja libre el botón de menú
         spacing: 14
 
-        Item { Layout.fillHeight: true }
+        Item { Layout.fillHeight: true; visible: !nowPlaying.coverLyrics }
 
         CoverArt {
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredWidth: nowPlaying.coverSize
             Layout.preferredHeight: nowPlaying.coverSize
             Layout.bottomMargin: 10
+            visible: !nowPlaying.coverLyrics
             source: player.coverSource
             radius: 14
             glyphSize: nowPlaying.coverSize / 3
             decodeSize: 600
+
+            HoverHandler { id: coverHover; cursorShape: Qt.PointingHandCursor }
+            TapHandler { onTapped: nowPlaying.coverLyrics = true }
+            ToolTip.text: "Ver letra"
+            ToolTip.visible: coverHover.hovered
+            ToolTip.delay: 600
+        }
+
+        // Con la letra: portada en miniatura y título en una fila; clic en la miniatura para volver
+        RowLayout {
+            Layout.fillWidth: true
+            visible: nowPlaying.coverLyrics
+            spacing: 12
+
+            CoverArt {
+                Layout.preferredWidth: 56
+                Layout.preferredHeight: 56
+                source: player.coverSource
+                radius: 6
+                glyphSize: 20
+                decodeSize: 600  // el mismo tamaño que la grande: reutiliza la imagen ya cargada
+
+                HoverHandler { id: thumbHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: nowPlaying.coverLyrics = false }
+                ToolTip.text: "Ver portada"
+                ToolTip.visible: thumbHover.hovered
+                ToolTip.delay: 600
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                Label {
+                    Layout.fillWidth: true
+                    text: player.currentIndex >= 0 ? player.title : "Nada en reproducción"
+                    font.pixelSize: 17
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+                Label {
+                    Layout.fillWidth: true
+                    text: player.artist + (player.album ? "  ·  " + player.album : "")
+                    opacity: 0.7
+                    elide: Text.ElideRight
+                }
+            }
+        }
+
+        // Se crea solo mientras se ve
+        Loader {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: nowPlaying.coverLyrics
+            active: nowPlaying.coverLyrics
+            sourceComponent: LyricsView { compact: true }
         }
 
         Label {
             Layout.fillWidth: true
+            visible: !nowPlaying.coverLyrics
             text: player.currentIndex >= 0 ? player.title : "Nada en reproducción"
             font.pixelSize: 22
             font.bold: true
@@ -78,6 +137,7 @@ Item {
         Label {
             Layout.fillWidth: true
             Layout.topMargin: -10
+            visible: !nowPlaying.coverLyrics
             text: player.currentIndex >= 0
                   ? player.artist + (player.album ? "  ·  " + player.album : "")
                   : "Agrega canciones para empezar"
@@ -203,6 +263,6 @@ Item {
             }
         }
 
-        Item { Layout.fillHeight: true }
+        Item { Layout.fillHeight: true; visible: !nowPlaying.coverLyrics }
     }
 }

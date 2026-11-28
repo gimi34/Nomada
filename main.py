@@ -8,6 +8,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
 
 from covers import CoverProvider
+from media_controls import MediaControls
 from player import Player
 from search import SearchFilterModel
 from settings import AppSettings
@@ -28,6 +29,7 @@ def main():
     covers = CoverProvider()
     player = Player(covers)
     app.aboutToQuit.connect(player.save)
+    media_controls = MediaControls(player)  # teclas multimedia y panel de Windows
 
     # Archivos pasados por línea de comandos (p. ej. "Abrir con...")
     files = [os.path.abspath(a) for a in sys.argv[1:] if os.path.exists(a)]

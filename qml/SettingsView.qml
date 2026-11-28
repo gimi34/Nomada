@@ -227,7 +227,7 @@ Item {
                 SettingsCard {
                     title: "Mini reproductor"
                     subtitle: "Cambia a una ventana pequeña que flota sobre las demás. Arrástrala a donde quieras "
-                            + "y usa su botón de la esquina para volver al reproductor completo."
+                            + "y usa su botón de la esquina para volver al reproductor completo. Atajo: Ctrl+M."
 
                     Button {
                         text: "Abrir mini reproductor"

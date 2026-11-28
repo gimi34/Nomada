@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 
-// Fondo de la vista Letra: la carátula muy difuminada con un velo encima.
+// Fondo de las vistas Canciones y Letra: la carátula muy difuminada con un velo encima.
 Item {
     id: backdrop
     clip: true

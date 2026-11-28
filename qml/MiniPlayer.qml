@@ -80,7 +80,7 @@ Window {
             IconButton {
                 Layout.alignment: Qt.AlignTop
                 glyph: ""
-                tip: "Volver al reproductor completo"
+                tip: "Volver al reproductor completo (Ctrl+M)"
                 onClicked: mini.mainWindow.exitMini()
             }
         }

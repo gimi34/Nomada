@@ -34,6 +34,7 @@ ApplicationWindow {
     // Mini reproductor: oculta la ventana grande y muestra la flotante
     function enterMini() {
         miniPlayer.show()
+        miniPlayer.requestActivate()
         win.hide()
     }
     function exitMini() {
@@ -86,6 +87,9 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+I"; onActivated: if (player.currentIndex >= 0) infoDialog.open() }
     Shortcut { sequence: "Ctrl+,"; onActivated: win.view = win.view === 3 ? win.previousView : 3 }
     Shortcut { sequence: "Escape"; enabled: win.view === 3; onActivated: win.view = win.previousView }
+    // Alterna. También actúa con el foco en el mini (es ventana hija de esta), así que no le pongas
+    // otro Ctrl+M allí: dos atajos iguales se vuelven ambiguos y ninguno se dispara.
+    Shortcut { sequence: "Ctrl+M"; onActivated: miniPlayer.visible ? win.exitMini() : win.enterMini() }
     Shortcut { sequences: [StandardKey.Open]; onActivated: fileDialog.open() }
     Shortcut {
         sequences: [StandardKey.Find]
@@ -121,6 +125,7 @@ ApplicationWindow {
         onAddFilesRequested: fileDialog.open()
         onAddFolderRequested: folderDialog.open()
         onSettingsRequested: win.view = 3
+        onMiniRequested: win.enterMini()
     }
 
     // ------------------------------------------------------------------ layout
@@ -156,9 +161,10 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            // Portada difuminada de fondo en Canciones y en Letra
             LyricsBackdrop {
                 anchors.fill: parent
-                opacity: win.view === 2 ? 1 : 0
+                opacity: win.view === 0 || win.view === 2 ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity { NumberAnimation { duration: 400 } }
             }
